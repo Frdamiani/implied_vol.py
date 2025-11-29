@@ -1,0 +1,35 @@
+from math import log,sqrt,exp
+from scipy.stats import norm
+
+def pbs(S,K,T,r,sig):
+ d1=(log(S/K)+(r+0.5*sig*sig)*T)/(sig*sqrt(T))
+ d2=d1-sig*sqrt(T)
+ return S*norm.cdf(d1)-K*exp(-r*T)*norm.cdf(d2)
+
+def vega(S,K,T,r,sig):
+ d1=(log(S/K)+(r+0.5*sig*sig)*T)/(sig*sqrt(T))
+ return S*norm.pdf(d1)*sqrt(T)
+
+def volimp(S,K,T,r,pmkt):
+ s=0.2
+ for i in range(100):
+  pr=pbs(S,K,T,r,s)
+  vg=vega(S,K,T,r,s)
+  if vg<0.00000001:
+   return s
+  d=pr-pmkt
+  if abs(d)<0.000001:
+   return s
+  s=s-d/vg
+  if s<0: s=0.0001
+  if s>5: s=5
+ return s
+
+S=float(input("Spot price? "))
+K=float(input("Strike price? "))
+T=float(input("Time to maturity (years)? "))
+r=float(input("Risk-free rate? "))
+pm=float(input("Market price of the call? "))
+
+v=volimp(S,K,T,r,pm)
+print("Implied volatility =",v*100,"%")
